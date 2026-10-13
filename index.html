@@ -203,7 +203,7 @@
       </nav>
       <div class="side-divider"></div>
       <div class="playlist-title"><span class="eyebrow">Browse moods</span></div>
-      <button class="playlist-link" data-filter="Chill">Slow mornings</button>
+      <button class="playlist-link" data-filter="Alternative">Slow mornings</button>
       <button class="playlist-link" data-filter="Electronic">After hours</button>
       <button class="playlist-link" data-filter="Pop">Good energy</button>
       <div class="sidebar-spacer"></div>
@@ -449,7 +449,7 @@
           const viewButton = e.target.closest('[data-view]');
           if (viewButton) { setView(viewButton.dataset.view); return; }
           const playlist = e.target.closest('.playlist-link');
-          if (playlist) { changeGenre(playlist.dataset.filter); return; }
+          if (playlist) { state.searchTerm = ''; changeGenre(playlist.dataset.filter); return; }
           const filter = e.target.closest('[data-genre]');
           if (filter) { changeGenre(filter.dataset.genre.replace('&amp;','&')); return; }
           const action = e.target.closest('[data-action]');
