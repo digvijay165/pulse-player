@@ -1,12 +1,12 @@
 # Pulse Player
 
-**A bright, browser-based music discovery player.** Search a catalog of full-length tracks, play direct audio links, manage a listening queue, and save favorites on your device.
+**A bright, browser-based music discovery player.** Search any song and play it in full through the YouTube player or the Audius catalog, play YouTube or direct audio links, manage a listening queue, and save favorites on your device.
 
 [Live player](https://pulse-player-0rdw.onrender.com/) · [GitHub repository](https://github.com/digvijay165/pulse-player)
 
 ## Features
 
-- Search songs and artists through the open Audius API
+- Search songs and artists through the YouTube Data API (when a key is set) and the open Audius API
 - Play full-length tracks or paste a direct HTTPS audio URL
 - Control playback, seeking, volume, repeat, shuffle, and speed from **0.5× to 4×**
 - Play, reorder, remove, and clear tracks in the queue
@@ -18,17 +18,18 @@
 
 | Priority | Source | What Pulse supports |
 | --- | --- | --- |
-| 1 | Audius API | Search results, artwork, and full-length audio streams |
-| 2 | Direct HTTPS audio URL | Audio files the browser can play; native HLS works only in browsers that support it |
+| 1 | YouTube (IFrame Player + Data API) | Search any song, including mainstream hits, and play it in full in the embedded YouTube player |
+| 2 | Audius API | Search results, artwork, and full-length audio streams from independent artists |
+| 3 | YouTube link or direct HTTPS audio URL | Audio files the browser can play; native HLS works only in browsers that support it |
 
-Pulse needs a **direct audio URL**, not a YouTube or Spotify webpage. It does not resolve Spotify, YouTube, Telegram, or other platform links, The app plays full-length tracks from the Audius catalog, mostly independent artists, or audio sources you provide.
+The link box accepts **YouTube links** and **direct audio URLs**. Spotify, Telegram, and other platform links are not supported. YouTube songs play in the visible YouTube player, which may show YouTube's own ads.
 
 ## Player controls
 
 | Control | Action |
 | --- | --- |
-| Play link | Play a direct HTTPS audio URL |
-| Add to queue | Add a direct audio URL without interrupting the current track |
+| Play link | Play a YouTube link or a direct HTTPS audio URL |
+| Add to queue | Add a YouTube link or direct audio URL without interrupting the current track |
 | Queue title | Play that queued track next |
 | Up / down arrows | Change a queued track's position |
 | Speed menu | Set playback speed from 0.5× to 4× |
@@ -62,7 +63,7 @@ The live site is [pulse-player-0rdw.onrender.com](https://pulse-player-0rdw.onre
 
 ## Configuration and privacy
 
-Pulse has no server-side configuration or required environment variables. Favorites and playback speed are saved in local storage on the current browser and are not synced between devices. Search requests go directly from the browser to the Audius API; audio streams from Audius or the direct source you provide.
+Pulse has no server-side configuration or required environment variables. To search YouTube, set `YT_API_KEY` near the top of the script in `index.html` to a YouTube Data API v3 key from Google Cloud, restricted to this site's address. Each search uses about 100 of the key's 10,000 free daily quota units, and results are cached in the browser for a day. Without a key, search covers Audius only, and pasted YouTube links still play. Favorites and playback speed are saved in local storage on the current browser and are not synced between devices. Search requests go directly from the browser to YouTube and Audius; audio plays from the YouTube player, Audius, or the direct source you provide.
 
 This is a single-user browser app. Telegram commands, login and access control, admin tools, server resource metrics, and bot-side stream resolvers are not part of Pulse.
 

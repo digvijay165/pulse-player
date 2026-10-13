@@ -175,6 +175,10 @@
     .queue-row strong { font-size: 11px; }
     .queue-row span { margin-top: 2px; color: var(--muted); font-size: 10px; }
     .queue-empty { text-align: center; color: #9a9b91; padding: 22px 4px; font-size: 11px; }
+    .yt-dock { position: fixed; z-index: 15; right: 16px; bottom: calc(var(--player) + 12px); width: 340px; height: 200px; border-radius: 14px; overflow: hidden; background: #000; box-shadow: 0 18px 40px rgba(20,22,18,.28); }
+    .yt-dock[hidden] { display: none; }
+    .yt-dock iframe { display: block; width: 100%; height: 100%; border: 0; }
+    @media (max-width: 460px) { .yt-dock { left: 16px; right: 16px; width: auto; } }
     .tip-card { margin-top: 30px; border-radius: 16px; background: #e9e7df; padding: 15px; }
     .tip-card h3 { font: 700 12px Manrope, sans-serif; margin: 0 0 5px; }
     .tip-card p { margin: 0; color: #77796f; font-size: 11px; }
@@ -255,8 +259,8 @@
           <div class="hero-art"><img id="heroArtwork" alt="Featured album artwork" src="" loading="eager"></div>
         </div>
         <form class="direct-form" id="directForm">
-          <div class="direct-copy"><span class="eyebrow">Bring your own stream</span><p>Paste a direct audio URL. YouTube and Spotify page links are not direct audio.</p></div>
-          <div class="direct-controls"><label for="directInput" class="sr-only">Direct audio URL</label><input id="directInput" type="url" placeholder="https://example.com/track.mp3" autocomplete="url" required><button class="btn-primary" type="submit">Play link</button><button class="btn-light" type="button" id="queueDirectButton">Add to queue</button></div>
+          <div class="direct-copy"><span class="eyebrow">Bring your own stream</span><p>Paste a YouTube link or a direct audio URL. Spotify links are not supported.</p></div>
+          <div class="direct-controls"><label for="directInput" class="sr-only">YouTube link or direct audio URL</label><input id="directInput" type="url" placeholder="https://youtu.be/… or https://example.com/track.mp3" autocomplete="url" required><button class="btn-primary" type="submit">Play link</button><button class="btn-light" type="button" id="queueDirectButton">Add to queue</button></div>
         </form>
         <div class="section-head"><div><h2>On your wavelength</h2><p>Small discoveries, picked for the moment.</p></div><button class="text-btn" data-view="search">See all tracks ↗</button></div>
         <div class="track-grid" id="featuredGrid" aria-live="polite"></div>
@@ -300,7 +304,7 @@
       </div>
       <div class="queue-section-title"><span>Coming up next</span><button class="text-btn" id="shuffleBtn">Shuffle</button></div>
       <div class="queue-list" id="queueList"><div class="queue-empty">Your queue is a blank canvas.<br>Add a track to get started.</div></div>
-      <div class="tip-card"><h3>Full-length tracks</h3><p>Every song plays in full, streamed from the open Audius music catalog.</p></div>
+      <div class="tip-card"><h3>Full-length tracks</h3><p>Search any song to play it in full with the YouTube player, or explore independent artists from the open Audius catalog.</p></div>
     </aside>
   </div>
 
@@ -321,12 +325,16 @@
     <div class="progress-area" style="display:none"></div>
   </div>
   <audio id="audio" preload="none"></audio>
+  <div class="yt-dock" id="ytDock" hidden><div id="ytPlayer"></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
     (() => {
       const API = 'https://api.audius.co/v1';
       const APP_NAME = 'pulse-player';
+      // YouTube Data API v3 key (restrict it to this site's address in Google Cloud). Leave empty to search Audius only.
+      const YT_API_KEY = '';
+      const YT_API = 'https://www.googleapis.com/youtube/v3';
       const FALLBACK_ART = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><rect width="300" height="300" rx="28" fill="#d9f367"/><path d="M78 159h36l24-71 45 132 25-61h31" fill="none" stroke="#21231f" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg>');
       const $ = (id) => document.getElementById(id);
       const state = {
@@ -344,7 +352,7 @@
       function saveStorage(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} }
       function safeText(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
       function art(track) { return (track?.artworkUrl100 || '').replace(/100x100bb|100x100/g, '600x600bb') || FALLBACK_ART; }
-      function minutes(ms) { const n = Math.max(0, Math.floor((ms || 30000) / 1000)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
+      function minutes(ms) { const n = Math.max(0, Math.floor((ms || 0) / 1000)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
       function say(message) { const el = $('toast'); el.textContent = message; el.classList.add('show'); clearTimeout(state.toastTimer); state.toastTimer = setTimeout(() => el.classList.remove('show'), 2400); }
       async function findTracks(term, limit = 30) {
         const params = new URLSearchParams({ query: term, limit: String(limit), app_name: APP_NAME });
@@ -358,6 +366,82 @@
           duration: (t.duration || 0) * 1000, genre: t.genre || 'Music', link: t.permalink ? `https://audius.co${t.permalink}` : ''
         }));
       }
+      function decodeEntities(text) { const el = document.createElement('textarea'); el.innerHTML = text || ''; return el.value; }
+      function isoDuration(value) { const m = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(value || ''); return m ? ((+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0)) * 1000 : 0; }
+      function youTubeTrack(videoId, details = {}) {
+        return { id: `yt:${videoId}`, source: 'youtube', videoId, title: details.title || 'YouTube video', artist: details.artist || 'YouTube', album: 'YouTube',
+          artworkUrl100: details.artwork || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`, previewUrl: `https://www.youtube.com/watch?v=${videoId}`,
+          duration: details.duration || 0, genre: 'Music', link: `https://www.youtube.com/watch?v=${videoId}`, needsTitle: !details.title };
+      }
+      async function findYouTube(term, limit = 20) {
+        if (!YT_API_KEY) return [];
+        const cacheKey = `pulse-yt:${term.toLowerCase()}`;
+        const cached = readStorage(cacheKey, null);
+        if (cached && Date.now() - cached.at < 864e5 && Array.isArray(cached.tracks)) return cached.tracks;
+        const params = new URLSearchParams({ part: 'snippet', type: 'video', videoEmbeddable: 'true', videoCategoryId: '10', maxResults: String(limit), q: term, key: YT_API_KEY });
+        const response = await fetch(`${YT_API}/search?${params}`);
+        if (!response.ok) throw new Error('YouTube search is unavailable right now.');
+        const items = ((await response.json()).items || []).filter(item => item.id?.videoId);
+        const durations = {};
+        if (items.length) {
+          try {
+            const details = await fetch(`${YT_API}/videos?${new URLSearchParams({ part: 'contentDetails', id: items.map(i => i.id.videoId).join(','), key: YT_API_KEY })}`).then(r => r.json());
+            (details.items || []).forEach(v => { durations[v.id] = isoDuration(v.contentDetails?.duration); });
+          } catch {}
+        }
+        const tracks = items.map(item => youTubeTrack(item.id.videoId, {
+          title: decodeEntities(item.snippet.title), artist: decodeEntities(item.snippet.channelTitle).replace(/\s*-\s*Topic$|VEVO$/, ''),
+          artwork: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.medium?.url, duration: durations[item.id.videoId]
+        }));
+        saveStorage(cacheKey, { at: Date.now(), tracks });
+        return tracks;
+      }
+      function youTubeId(raw) {
+        let url;
+        try { url = new URL(raw.trim()); } catch { return null; }
+        const host = url.hostname.replace(/^(www|m|music)\./, '');
+        let id = null;
+        if (host === 'youtu.be') id = url.pathname.slice(1).split('/')[0];
+        else if (host === 'youtube.com' || host === 'youtube-nocookie.com') id = url.searchParams.get('v') || (url.pathname.match(/^\/(?:shorts|embed|live)\/([^/?#]+)/) || [])[1];
+        return id && /^[\w-]{11}$/.test(id) ? id : null;
+      }
+      const yt = { player: null, ready: null, active: false, timer: null };
+      function loadYouTube() {
+        if (yt.ready) return yt.ready;
+        yt.ready = new Promise((resolve, reject) => {
+          window.onYouTubeIframeAPIReady = () => {
+            yt.player = new YT.Player('ytPlayer', {
+              width: '100%', height: '100%', playerVars: { playsinline: 1, rel: 0 },
+              events: {
+                onReady: () => resolve(yt.player),
+                onStateChange: e => {
+                  if (!yt.active) return;
+                  if (e.data === YT.PlayerState.PLAYING) {
+                    const data = yt.player.getVideoData?.();
+                    const t = state.current;
+                    if (t?.needsTitle && data?.title) { t.title = data.title; t.artist = data.author || t.artist; t.needsTitle = false; renderCurrent(); }
+                  }
+                  if (e.data === YT.PlayerState.ENDED) trackEnded();
+                  updatePlayback(); updateProgress();
+                },
+                onError: () => { if (yt.active) { say('This video can’t be played here. Skipping to the next track.'); nextTrack(); } }
+              }
+            });
+          };
+          const script = document.createElement('script');
+          script.src = 'https://www.youtube.com/iframe_api';
+          script.onerror = () => { yt.ready = null; reject(new Error('The YouTube player could not load.')); };
+          document.head.appendChild(script);
+        });
+        return yt.ready;
+      }
+      function mediaPaused() { if (!yt.active) return audio.paused; const s = yt.player?.getPlayerState?.(); return s !== 1 && s !== 3; }
+      function mediaPlay() { if (yt.active) { yt.player?.playVideo(); return Promise.resolve(); } return audio.play(); }
+      function mediaPause() { if (yt.active) yt.player?.pauseVideo(); else audio.pause(); }
+      function mediaTime() { return yt.active ? (yt.player?.getCurrentTime?.() || 0) : audio.currentTime; }
+      function mediaDuration() { return yt.active ? (yt.player?.getDuration?.() || 0) : audio.duration; }
+      function mediaSeek(seconds) { if (yt.active) yt.player?.seekTo(seconds, true); else audio.currentTime = seconds; }
+      function trackEnded() { if (state.repeat === 'one') { mediaSeek(0); mediaPlay(); } else nextTrack(); }
       function activeTracks() {
         const source = state.view === 'search' ? state.results : state.tracks;
         if (state.genre === 'All') return source;
@@ -419,19 +503,34 @@
         if (!track?.previewUrl) return say('That track is not playable.');
         if (addHistory && state.current && state.current.id !== track.id) state.history.push(state.current);
         state.current = track;
-        audio.src = track.previewUrl;
         $('progress').value = 0; $('elapsed').textContent = '0:00'; $('duration').textContent = minutes(track.duration);
         renderCurrent();
+        if (track.source === 'youtube') {
+          audio.pause();
+          yt.active = true; $('ytDock').hidden = false;
+          try {
+            const player = await loadYouTube();
+            if (state.current !== track) return;
+            player.setVolume(Math.round(Number($('volume').value) * 100));
+            player.loadVideoById(track.videoId);
+            player.setPlaybackRate(Math.min(2, Number($('speedControl').value)));
+            clearInterval(yt.timer); yt.timer = setInterval(updateProgress, 500);
+          } catch { say('The YouTube player could not load. Check your connection and try again.'); }
+          return;
+        }
+        if (yt.active) { yt.player?.stopVideo(); yt.active = false; clearInterval(yt.timer); $('ytDock').hidden = true; }
+        audio.src = track.previewUrl;
         try { await audio.play(); } catch { say('This audio source could not play. Check the direct link or try another track.'); }
       }
       function updatePlayback() {
-        $('playIcon').outerHTML = icon(audio.paused ? 'play' : 'pause').replace('<svg ', '<svg id="playIcon" ');
-        $('togglePlayback').setAttribute('aria-label', audio.paused ? 'Play' : 'Pause');
+        const paused = mediaPaused();
+        $('playIcon').outerHTML = icon(paused ? 'play' : 'pause').replace('<svg ', '<svg id="playIcon" ');
+        $('togglePlayback').setAttribute('aria-label', paused ? 'Play' : 'Pause');
       }
       function togglePlay() {
         if (!state.current) { const first = state.tracks[0]; if (first) return playTrack(first); return say('Give it a moment while we find some music.'); }
-        if (audio.paused) audio.play().catch(() => say('This track could not be played. Try another one.'));
-        else audio.pause();
+        if (mediaPaused()) mediaPlay().catch(() => say('This track could not be played. Try another one.'));
+        else mediaPause();
       }
       async function nextTrack() {
         let next;
@@ -443,7 +542,7 @@
           const list = state.tracks; const i = list.findIndex(t => t.id === state.current?.id); next = list[(i + 1 + list.length) % list.length];
         }
         renderQueue();
-        if (next) await playTrack(next, false); else { audio.pause(); say('That’s the end of your queue.'); }
+        if (next) await playTrack(next, false); else { mediaPause(); say('That’s the end of your queue.'); }
       }
       function addToQueue(track) { if (!track) return; state.queue.push(track); renderQueue(); say(`Added “${track.title}” to your queue.`); }
       function makeDirectTrack(raw) {
@@ -453,11 +552,12 @@
         let title = url.pathname.split('/').filter(Boolean).pop() || 'Direct audio stream';
         try { title = decodeURIComponent(title); } catch {}
         title = title.replace(/\.[a-z0-9]{2,5}$/i, '').replace(/[-_]+/g, ' ').slice(0, 80) || 'Direct audio stream';
-        return { id: `direct:${url.href}`, title, artist: url.hostname.replace(/^www\./, ''), album: 'Direct stream', artworkUrl100: '', previewUrl: url.href, duration: 30000, genre: 'Direct', link: url.href };
+        return { id: `direct:${url.href}`, title, artist: url.hostname.replace(/^www\./, ''), album: 'Direct stream', artworkUrl100: '', previewUrl: url.href, duration: 0, genre: 'Direct', link: url.href };
       }
       function useDirectLink(queueOnly = false) {
-        const track = makeDirectTrack($('directInput').value);
-        if (!track) return say('Enter a direct HTTPS audio URL. YouTube and Spotify page links will not work here.');
+        const videoId = youTubeId($('directInput').value);
+        const track = videoId ? youTubeTrack(videoId) : makeDirectTrack($('directInput').value);
+        if (!track) return say('Enter a YouTube link or a direct HTTPS audio URL. Spotify links will not work here.');
         if (queueOnly) addToQueue(track); else playTrack(track);
         $('directInput').value = '';
       }
@@ -478,6 +578,7 @@
         const value = supportedRates.includes(Number(rate)) ? Number(rate) : 1;
         control.value = String(value);
         audio.playbackRate = value;
+        if (yt.active) yt.player?.setPlaybackRate(Math.min(2, value));
         saveStorage('pulse-speed', value);
         if (announce) say(`Playback speed ${value}×.`);
       }
@@ -501,7 +602,10 @@
         $('searchStatus').textContent = 'Looking through the catalog…';
         setView('search'); $('searchInput').value = query;
         try {
-          state.results = await findTracks(query, 35);
+          const [fromYouTube, fromAudius] = await Promise.allSettled([findYouTube(query, 20), findTracks(query, 35)]);
+          if (fromYouTube.status === 'rejected' && fromAudius.status === 'rejected') throw fromAudius.reason;
+          if (fromYouTube.status === 'rejected') say('YouTube search is unavailable right now, showing Audius tracks only.');
+          state.results = [...(fromYouTube.value || []), ...(fromAudius.value || [])];
           $('searchSubtitle').textContent = `A little closer to the sound you asked for: ${query}.`;
           $('searchStatus').textContent = state.results.length ? 'Tap a track to play it in full, or use + to build your queue.' : 'No playable tracks came back. Try a different search.';
           renderSearchResults();
@@ -556,29 +660,31 @@
         $('heroPlay').addEventListener('click', () => state.tracks[0] ? playTrack(state.tracks[0]) : say('Finding a few tracks for you…'));
         $('togglePlayback').addEventListener('click', togglePlay);
         $('nextTrack').addEventListener('click', nextTrack);
-        $('previousTrack').addEventListener('click', () => { if (state.history.length) playTrack(state.history.pop(), false); else if (state.current) { audio.currentTime = 0; if (audio.paused) togglePlay(); } });
+        $('previousTrack').addEventListener('click', () => { if (state.history.length) playTrack(state.history.pop(), false); else if (state.current) { mediaSeek(0); if (mediaPaused()) togglePlay(); } });
         $('shuffleControl').addEventListener('click', () => { state.shuffle = !state.shuffle; $('shuffleControl').classList.toggle('selected', state.shuffle); $('shuffleBtn').classList.toggle('selected', state.shuffle); say(state.shuffle ? 'Shuffle is on.' : 'Shuffle is off.'); });
         $('shuffleBtn').addEventListener('click', () => { state.shuffle = !state.shuffle; $('shuffleBtn').classList.toggle('selected', state.shuffle); $('shuffleControl').classList.toggle('selected', state.shuffle); say(state.shuffle ? 'Shuffle is on.' : 'Shuffle is off.'); });
         $('repeatControl').addEventListener('click', () => { state.repeat = state.repeat === 'off' ? 'all' : state.repeat === 'all' ? 'one' : 'off'; $('repeatControl').classList.toggle('selected', state.repeat !== 'off'); $('repeatControl').title = `Repeat ${state.repeat}`; $('repeatControl').setAttribute('aria-label', `Repeat ${state.repeat}`); say(`Repeat ${state.repeat}.`); });
         $('clearQueue').addEventListener('click', () => { state.queue = []; renderQueue(); say('Queue cleared.'); });
         $('queueHeart').addEventListener('click', () => toggleFavorite(state.current));
         $('playerHeart').addEventListener('click', () => toggleFavorite(state.current));
-        $('progress').addEventListener('input', () => { if (audio.duration) audio.currentTime = Number($('progress').value) / 100 * audio.duration; });
-        $('volume').addEventListener('input', () => { audio.volume = Number($('volume').value); });
+        $('progress').addEventListener('input', () => { const d = mediaDuration(); if (d && Number.isFinite(d)) mediaSeek(Number($('progress').value) / 100 * d); });
+        $('volume').addEventListener('input', () => { audio.volume = Number($('volume').value); yt.player?.setVolume?.(Math.round(audio.volume * 100)); });
         audio.volume = 0.78;
         audio.addEventListener('play', updatePlayback); audio.addEventListener('pause', updatePlayback);
         audio.addEventListener('timeupdate', updateProgress);
-        audio.addEventListener('ended', () => { if (state.repeat === 'one') { audio.currentTime = 0; audio.play(); } else nextTrack(); });
-        audio.addEventListener('error', () => say('This track is unavailable right now. Try another one.'));
+        audio.addEventListener('ended', trackEnded);
+        audio.addEventListener('error', () => { if (!yt.active && audio.getAttribute('src')) say('This track is unavailable right now. Try another one.'); });
       }
       function updateProgress() {
-        if (!audio.duration || !Number.isFinite(audio.duration)) return;
-        $('progress').value = Math.round(audio.currentTime / audio.duration * 100);
-        $('elapsed').textContent = minutes(audio.currentTime * 1000);
-        $('duration').textContent = minutes(audio.duration * 1000);
+        const duration = mediaDuration(), time = mediaTime();
+        if (!duration || !Number.isFinite(duration)) return;
+        $('progress').value = Math.round(time / duration * 100);
+        $('elapsed').textContent = minutes(time * 1000);
+        $('duration').textContent = minutes(duration * 1000);
       }
       async function boot() {
         renderEvents(); renderQueue();
+        loadYouTube().catch(() => {});
         try { state.tracks = await findTracks('indie pop', 20); renderDiscovery(); if (state.tracks.length) { $('homeStatus').textContent = `A fresh mix of ${state.tracks.length} full tracks, ready when you are.`; } }
         catch { $('homeStatus').textContent = 'Connect to the internet to explore the music catalog.'; $('featuredGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><strong>The catalog is taking a breather.</strong>Check your connection, then search again.</div>'; }
       }
