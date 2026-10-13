@@ -17,7 +17,7 @@ Open `index.html` in a modern browser while connected to the internet. Pulse loa
 
 ## Inspiration
 
-Pulse is an independent browser-based interpretation of music discovery and playback ideas inspired by [AnvuMusic](https://github.com/Naman-Devio/AnvuMusic). It uses a different platform, implementation, name, and visual design. It is not affiliated with or endorsed by AnvuMusic or its authors.
+Pulse is an independent browser-based interpretation of music discovery and playback ideas inspired by It uses a different platform, implementation, name, and visual design. It is not affiliated with or endorsed  its authors.
 
 ## Privacy
 
