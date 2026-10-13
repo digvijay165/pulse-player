@@ -93,6 +93,14 @@
     .hero-art { width: 222px; height: 222px; flex: 0 0 222px; position: relative; margin-right: min(5vw, 65px); transform: rotate(5deg); }
     .hero-art img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 29px; box-shadow: 0 24px 42px rgba(33,35,31,.18); background: #e2dda1; }
     .hero-art::after { content: ''; position: absolute; width: 52px; height: 52px; border-radius: 50%; border: 1px solid rgba(33,35,31,.2); background: rgba(255,255,255,.54); left: -25px; bottom: 15px; backdrop-filter: blur(8px); }
+    .direct-form { display: grid; grid-template-columns: minmax(165px, .75fr) minmax(0, 1.25fr); align-items: center; gap: 16px; margin-top: 18px; padding: 15px 17px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,254,250,.72); }
+    .direct-copy .eyebrow { color: #77796f; }
+    .direct-copy p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .direct-controls { display: flex; min-width: 0; gap: 8px; }
+    .direct-controls input { width: 100%; min-width: 0; height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); }
+    .direct-controls input::placeholder { color: #9b9d94; }
+    .direct-controls .btn-primary, .direct-controls .btn-light { min-height: 42px; padding: 0 12px; white-space: nowrap; font-size: 11px; }
+
     .section-head { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin: 34px 0 16px; }
     .section-head h2 { margin: 0; font: 700 21px/1.2 Manrope, sans-serif; letter-spacing: -.7px; }
     .section-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
@@ -154,7 +162,13 @@
     .queue-section-title { display: flex; justify-content: space-between; align-items: center; margin: 27px 0 8px; }
     .queue-section-title span { font: 500 10px 'DM Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
     .queue-list { display: grid; }
-    .queue-row { display: grid; grid-template-columns: 36px minmax(0,1fr) 26px; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+    .queue-row { display: grid; grid-template-columns: 36px minmax(0,1fr) auto; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+    .queue-track { min-width: 0; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+    .queue-track:hover strong { color: #778927; }
+    .queue-controls { display: flex; align-items: center; gap: 1px; }
+    .queue-control { padding: 4px; }
+    .queue-control svg { width: 14px; height: 14px; }
+    .queue-control:disabled { opacity: .3; cursor: not-allowed; }
     .queue-row img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
     .queue-row div { min-width: 0; }
     .queue-row strong, .queue-row span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -174,6 +188,9 @@
     .player-actions .primary-control { width: 40px; height: 40px; color: var(--ink); background: var(--lime); border-radius: 50%; }
     .player-actions .primary-control:hover { background: var(--lime-strong); }
     .player-actions .selected { color: #7a8d21; }
+    .speed-picker { display: flex; align-items: center; }
+    .speed-picker select { appearance: none; min-height: 31px; padding: 0 7px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: #73766b; cursor: pointer; font: 10px 'DM Mono', monospace; }
+    .speed-picker select:hover, .speed-picker select:focus-visible { border-color: #bdce61; color: var(--ink); }
     .progress-area { display: flex; align-items: center; gap: 9px; margin-top: 7px; }
     .time { width: 31px; color: #989a90; font: 9px 'DM Mono', monospace; }
     .time:last-child { text-align: right; }
@@ -190,6 +207,8 @@
     @media (max-width: 1020px) { .app { grid-template-columns: 210px minmax(0,1fr); } .queue-panel { display: none; } .track-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } }
     @media (max-width: 760px) { :root { --sidebar: 70px; --player: 84px; } .sidebar { padding: 22px 10px; align-items: center; } .brand { margin: 0 auto 38px; } .brand-name, .nav-label, .nav-link span, .side-divider, .playlist-title, .playlist-link, .side-note { display: none; } .nav-list { width: 100%; } .nav-link { justify-content: center; padding: 12px 0; } .nav-icon { width: 20px; height: 20px; } .main { padding: 18px 18px 35px; } .topbar { margin-bottom: 22px; align-items: flex-start; flex-direction: column-reverse; gap: 12px; } .search-wrap { width: 100%; } .breadcrumb { padding-left: 2px; } .hero { min-height: 250px; padding: 24px; } .hero-art { width: 132px; height: 132px; flex-basis: 132px; margin-right: 0; } .hero-copy h1 { font-size: 36px; letter-spacing: -1.8px; } .hero-copy p { font-size: 12px; } .hero-copy .eyebrow { font-size: 9px; } .hero-actions { margin-top: 18px; } .btn-primary, .btn-light { min-height: 39px; padding: 0 12px; font-size: 12px; } .track-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; } .track-row { grid-template-columns: 24px 38px minmax(0,1fr) 35px 32px; gap: 8px; } .track-row .row-cover { width: 38px; height: 38px; } .track-row .row-album, .track-row .row-duration { display: none; } .player { grid-template-columns: minmax(0,1fr) auto; gap: 8px 12px; height: var(--player); padding: 8px 12px; } .player-track img { width: 43px; height: 43px; } .player-actions { gap: 8px; } .player-actions .optional, .player-extras { display: none; } .player-center { grid-column: 2; grid-row: 1; } .player-track { grid-column: 1; grid-row: 1; } .progress-area { grid-column: 1 / -1; grid-row: 2; margin-top: -4px; } .time { font-size: 8px; } }
     @media (max-width: 460px) { :root { --sidebar: 54px; } .sidebar { padding: 18px 6px; } .brand-mark { width: 30px; height: 30px; } .nav-link { padding: 10px 0; } .main { padding: 14px 12px 28px; } .hero { min-height: 235px; padding: 19px; } .hero-art { width: 92px; height: 92px; flex-basis: 92px; border-radius: 18px; } .hero-art img { border-radius: 18px; } .hero-art::after { width: 34px; height: 34px; left: -12px; } .hero-copy h1 { font-size: 30px; margin: 12px 0 8px; } .hero-copy p { display: none; } .hero-actions { gap: 7px; } .btn-light { display: none; } .section-head { margin-top: 26px; } .section-head h2 { font-size: 18px; } .track-grid { gap: 11px; } .player-track .now-copy { max-width: 140px; } .player-actions .optional { display: none; } }
+    @media (max-width: 760px) { .direct-form { grid-template-columns: 1fr; gap: 10px; } .direct-copy p { max-width: 420px; } .speed-picker select { min-height: 30px; padding: 0 4px; font-size: 9px; } }
+    @media (max-width: 460px) { .direct-controls { display: grid; grid-template-columns: 1fr 1fr; } .direct-controls input { grid-column: 1 / -1; } .direct-controls button { min-width: 0; padding: 0 7px; } .direct-controls .btn-light { display: inline-flex; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
   </style>
 </head>
@@ -235,6 +254,10 @@
           </div>
           <div class="hero-art"><img id="heroArtwork" alt="Featured album artwork" src="" loading="eager"></div>
         </div>
+        <form class="direct-form" id="directForm">
+          <div class="direct-copy"><span class="eyebrow">Bring your own stream</span><p>Paste a direct audio URL. YouTube and Spotify page links are not direct audio.</p></div>
+          <div class="direct-controls"><label for="directInput" class="sr-only">Direct audio URL</label><input id="directInput" type="url" placeholder="https://example.com/track.mp3" autocomplete="url" required><button class="btn-primary" type="submit">Play link</button><button class="btn-light" type="button" id="queueDirectButton">Add to queue</button></div>
+        </form>
         <div class="section-head"><div><h2>On your wavelength</h2><p>Small discoveries, picked for the moment.</p></div><button class="text-btn" data-view="search">See all tracks ↗</button></div>
         <div class="track-grid" id="featuredGrid" aria-live="polite"></div>
         <div class="section-head"><div><h2>Now making the rounds</h2><p>Play a preview or send it to your queue.</p></div></div>
@@ -285,6 +308,7 @@
     <div class="player-track"><img id="playerArtwork" src="" alt="" loading="lazy"><div class="now-copy"><strong id="playerTitle">The room is yours</strong><span id="playerArtist">Find something you love</span></div><button class="icon-btn" id="playerHeart" aria-label="Save current track"><svg viewBox="0 0 24 24" fill="none"><path d="M20.8 8.7c0 4.1-8.8 10.2-8.8 10.2S3.2 12.8 3.2 8.7A4.2 4.2 0 0 1 12 6a4.2 4.2 0 0 1 8.8 2.7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></button></div>
     <div class="player-center">
       <div class="player-actions">
+        <label class="speed-picker"><span class="sr-only">Playback speed</span><select id="speedControl" aria-label="Playback speed" title="Playback speed"><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select></label>
         <button class="icon-btn optional" id="shuffleControl" aria-label="Shuffle queue" title="Shuffle"><svg viewBox="0 0 24 24" fill="none"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M4 4l5 5m4 4 8 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <button class="icon-btn" id="previousTrack" aria-label="Previous track"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM19 6v12L9 12z"/></svg></button>
         <button class="icon-btn primary-control" id="togglePlayback" aria-label="Play"><svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10-6.5-10-6.5Z"/></svg></button>
@@ -296,7 +320,7 @@
     <div class="player-extras"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm13-1a6 6 0 0 1 0 8m2.5-10.5a9 9 0 0 1 0 13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><input class="range" id="volume" type="range" min="0" max="1" step="0.01" value="0.78" aria-label="Volume"></div>
     <div class="progress-area" style="display:none"></div>
   </div>
-  <audio id="audio" preload="none" crossorigin="anonymous"></audio>
+  <audio id="audio" preload="none"></audio>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
@@ -373,7 +397,7 @@
       }
       function renderQueue() {
         $('queueCount').textContent = state.queue.length;
-        $('queueList').innerHTML = state.queue.length ? state.queue.map((t,i) => `<div class="queue-row"><img src="${safeText(art(t))}" alt="" loading="lazy"><div><strong>${safeText(t.title)}</strong><span>${safeText(t.artist)}</span></div><button class="icon-btn" data-action="remove-queue" data-index="${i}" aria-label="Remove ${safeText(t.title)} from queue"><svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>`).join('') : '<div class="queue-empty">Your queue is a blank canvas.<br>Add a track to get started.</div>';
+        $('queueList').innerHTML = state.queue.length ? state.queue.map((t, i) => `<div class='queue-row'><img src='${safeText(art(t))}' alt='' loading='lazy'><button type='button' class='queue-track' data-action='play-queue' data-index='${i}' aria-label='Play ${safeText(t.title)}'><strong>${safeText(t.title)}</strong><span>${safeText(t.artist)}</span></button><div class='queue-controls'><button class='icon-btn queue-control' data-action='move-queue' data-index='${i}' data-direction='-1' aria-label='Move ${safeText(t.title)} up' ${i === 0 ? 'disabled' : ''}><svg viewBox='0 0 24 24' fill='none'><path d='m7 14 5-5 5 5' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg></button><button class='icon-btn queue-control' data-action='move-queue' data-index='${i}' data-direction='1' aria-label='Move ${safeText(t.title)} down' ${i === state.queue.length - 1 ? 'disabled' : ''}><svg viewBox='0 0 24 24' fill='none'><path d='m7 10 5 5 5-5' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg></button><button class='icon-btn queue-control' data-action='remove-queue' data-index='${i}' aria-label='Remove ${safeText(t.title)} from queue'><svg viewBox='0 0 24 24' fill='none'><path d='m7 7 10 10M17 7 7 17' stroke='currentColor' stroke-width='1.8' stroke-linecap='round'/></svg></button></div></div>`).join('') : '<div class="queue-empty">Your queue is a blank canvas.<br>Add a track to get started.</div>';
       }
       function renderCurrent() {
         const t = state.current;
@@ -396,7 +420,7 @@
         audio.src = track.previewUrl;
         $('progress').value = 0; $('elapsed').textContent = '0:00'; $('duration').textContent = minutes(track.duration);
         renderCurrent();
-        try { await audio.play(); } catch { say('Press play to start the audio preview.'); }
+        try { await audio.play(); } catch { say('This audio source could not play. Check the direct link or try another track.'); }
       }
       function updatePlayback() {
         $('playIcon').outerHTML = icon(audio.paused ? 'play' : 'pause').replace('<svg ', '<svg id="playIcon" ');
@@ -420,6 +444,46 @@
         if (next) await playTrack(next, false); else { audio.pause(); say('That’s the end of your queue.'); }
       }
       function addToQueue(track) { if (!track) return; state.queue.push(track); renderQueue(); say(`Added “${track.title}” to your queue.`); }
+      function makeDirectTrack(raw) {
+        let url;
+        try { url = new URL(raw.trim()); } catch { return null; }
+        if (url.protocol !== 'https:' || url.username || url.password) return null;
+        let title = url.pathname.split('/').filter(Boolean).pop() || 'Direct audio stream';
+        try { title = decodeURIComponent(title); } catch {}
+        title = title.replace(/\\.[a-z0-9]{2,5}$/i, '').replace(/[-_]+/g, ' ').slice(0, 80) || 'Direct audio stream';
+        return { id: `direct:${url.href}`, title, artist: url.hostname.replace(/^www\\./, ''), album: 'Direct stream', artworkUrl100: '', previewUrl: url.href, duration: 30000, genre: 'Direct', link: url.href };
+      }
+      function useDirectLink(queueOnly = false) {
+        const track = makeDirectTrack($('directInput').value);
+        if (!track) return say('Enter a direct HTTPS audio URL. YouTube and Spotify page links will not work here.');
+        if (queueOnly) addToQueue(track); else playTrack(track);
+        $('directInput').value = '';
+      }
+      function moveQueueItem(index, direction) {
+        const destination = index + direction;
+        if (destination < 0 || destination >= state.queue.length) return;
+        [state.queue[index], state.queue[destination]] = [state.queue[destination], state.queue[index]];
+        renderQueue();
+      }
+      function playQueueItem(index) {
+        const [track] = state.queue.splice(index, 1);
+        renderQueue();
+        if (track) playTrack(track);
+      }
+      function setPlaybackRate(rate, announce = true) {
+        const control = $('speedControl');
+        const supportedRates = [...control.options].map(option => Number(option.value));
+        const value = supportedRates.includes(Number(rate)) ? Number(rate) : 1;
+        control.value = String(value);
+        audio.playbackRate = value;
+        saveStorage('pulse-speed', value);
+        if (announce) say(`Playback speed ${value}×.`);
+      }
+      function stepPlaybackRate(direction) {
+        const rates = [...$('speedControl').options].map(option => Number(option.value));
+        const index = rates.indexOf(audio.playbackRate);
+        setPlaybackRate(rates[Math.max(0, Math.min(rates.length - 1, index + direction))]);
+      }
       function toggleFavorite(track) {
         if (!track) return;
         if (state.favorites.has(track.id)) { state.favorites.delete(track.id); state.favoriteDetails.delete(track.id); say('Removed from your favorites.'); }
@@ -467,19 +531,26 @@
           if (filter) { changeGenre(filter.dataset.genre.replace('&amp;','&')); return; }
           const action = e.target.closest('[data-action]');
           if (!action) return;
+          if (action.dataset.action === 'play-queue') { playQueueItem(Number(action.dataset.index)); return; }
+          if (action.dataset.action === 'move-queue') { moveQueueItem(Number(action.dataset.index), Number(action.dataset.direction)); return; }
+          if (action.dataset.action === 'remove-queue') { state.queue.splice(Number(action.dataset.index),1); renderQueue(); return; }
           const track = getTrack(action.dataset.id);
           if (action.dataset.action === 'play') playTrack(track);
           if (action.dataset.action === 'queue') addToQueue(track);
           if (action.dataset.action === 'favorite') toggleFavorite(track);
-          if (action.dataset.action === 'remove-queue') { state.queue.splice(Number(action.dataset.index),1); renderQueue(); }
         });
         document.addEventListener('keydown', e => {
           const target = e.target;
           if (target.matches('[data-action="play"]') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); playTrack(getTrack(target.dataset.id)); }
           if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('searchInput').focus(); }
-          if (e.code === 'Space' && !['INPUT','TEXTAREA','BUTTON'].includes(target.tagName)) { e.preventDefault(); togglePlay(); }
+          if ((e.key === '[' || e.key === ']') && !['INPUT','TEXTAREA','SELECT'].includes(target.tagName)) { e.preventDefault(); stepPlaybackRate(e.key === ']' ? 1 : -1); }
+          if (e.code === 'Space' && !['INPUT','TEXTAREA','BUTTON','SELECT'].includes(target.tagName)) { e.preventDefault(); togglePlay(); }
         });
         $('searchForm').addEventListener('submit', e => { e.preventDefault(); search($('searchInput').value); });
+        $('directForm').addEventListener('submit', e => { e.preventDefault(); useDirectLink(false); });
+        $('queueDirectButton').addEventListener('click', () => useDirectLink(true));
+        $('speedControl').addEventListener('change', e => setPlaybackRate(e.target.value));
+        setPlaybackRate(readStorage('pulse-speed', 1), false);
         $('heroPlay').addEventListener('click', () => state.tracks[0] ? playTrack(state.tracks[0]) : say('Finding a few tracks for you…'));
         $('togglePlayback').addEventListener('click', togglePlay);
         $('nextTrack').addEventListener('click', nextTrack);
