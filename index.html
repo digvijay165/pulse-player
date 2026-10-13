@@ -175,10 +175,15 @@
     .queue-row strong { font-size: 11px; }
     .queue-row span { margin-top: 2px; color: var(--muted); font-size: 10px; }
     .queue-empty { text-align: center; color: #9a9b91; padding: 22px 4px; font-size: 11px; }
-    .yt-dock { position: fixed; z-index: 15; right: 16px; bottom: calc(var(--player) + 12px); width: 340px; height: 200px; border-radius: 14px; overflow: hidden; background: #000; box-shadow: 0 18px 40px rgba(20,22,18,.28); }
+    .yt-dock { position: fixed; z-index: 15; right: 16px; bottom: calc(var(--player) + 12px); width: 200px; border-radius: 12px; overflow: hidden; background: #21231f; box-shadow: 0 14px 32px rgba(20,22,18,.28); }
+    .yt-dock.left { right: auto; left: calc(var(--sidebar) + 16px); }
     .yt-dock[hidden] { display: none; }
+    .yt-dock-bar { display: flex; align-items: center; justify-content: space-between; height: 26px; padding: 0 4px 0 10px; color: #e9e7df; font: 500 10px 'DM Mono', monospace; }
+    .yt-dock-bar button { width: 22px; height: 22px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
+    .yt-dock-bar button:hover, .yt-dock-bar button:focus-visible { background: rgba(255,255,255,.14); }
+    .yt-dock-bar svg { width: 14px; height: 14px; }
+    .yt-dock-video { width: 200px; height: 200px; background: #000; }
     .yt-dock iframe { display: block; width: 100%; height: 100%; border: 0; }
-    @media (max-width: 460px) { .yt-dock { left: 16px; right: 16px; width: auto; } }
     .tip-card { margin-top: 30px; border-radius: 16px; background: #e9e7df; padding: 15px; }
     .tip-card h3 { font: 700 12px Manrope, sans-serif; margin: 0 0 5px; }
     .tip-card p { margin: 0; color: #77796f; font-size: 11px; }
@@ -325,7 +330,7 @@
     <div class="progress-area" style="display:none"></div>
   </div>
   <audio id="audio" preload="none"></audio>
-  <div class="yt-dock" id="ytDock" hidden><div id="ytPlayer"></div></div>
+  <div class="yt-dock" id="ytDock" hidden><div class="yt-dock-bar"><span>Playing on YouTube</span><button type="button" id="ytDockMove" aria-label="Move video to the other corner" title="Move to the other corner"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7h11m0 0-3-3m3 3-3 3M17 17H6m0 0 3-3m-3 3 3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="yt-dock-video"><div id="ytPlayer"></div></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
@@ -694,6 +699,8 @@
         $('playerHeart').addEventListener('click', () => toggleFavorite(state.current));
         $('progress').addEventListener('input', () => { const d = mediaDuration(); if (d && Number.isFinite(d)) mediaSeek(Number($('progress').value) / 100 * d); });
         $('volume').addEventListener('input', () => { audio.volume = Number($('volume').value); yt.player?.setVolume?.(Math.round(audio.volume * 100)); });
+        $('ytDock').classList.toggle('left', readStorage('pulse-video-corner', 'right') === 'left');
+        $('ytDockMove').addEventListener('click', () => { const left = $('ytDock').classList.toggle('left'); saveStorage('pulse-video-corner', left ? 'left' : 'right'); });
         audio.volume = 0.78;
         audio.addEventListener('play', updatePlayback); audio.addEventListener('pause', updatePlayback);
         audio.addEventListener('timeupdate', updateProgress);
