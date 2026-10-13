@@ -450,8 +450,8 @@
         if (url.protocol !== 'https:' || url.username || url.password) return null;
         let title = url.pathname.split('/').filter(Boolean).pop() || 'Direct audio stream';
         try { title = decodeURIComponent(title); } catch {}
-        title = title.replace(/\\.[a-z0-9]{2,5}$/i, '').replace(/[-_]+/g, ' ').slice(0, 80) || 'Direct audio stream';
-        return { id: `direct:${url.href}`, title, artist: url.hostname.replace(/^www\\./, ''), album: 'Direct stream', artworkUrl100: '', previewUrl: url.href, duration: 30000, genre: 'Direct', link: url.href };
+        title = title.replace(/\.[a-z0-9]{2,5}$/i, '').replace(/[-_]+/g, ' ').slice(0, 80) || 'Direct audio stream';
+        return { id: `direct:${url.href}`, title, artist: url.hostname.replace(/^www\./, ''), album: 'Direct stream', artworkUrl100: '', previewUrl: url.href, duration: 30000, genre: 'Direct', link: url.href };
       }
       function useDirectLink(queueOnly = false) {
         const track = makeDirectTrack($('directInput').value);
