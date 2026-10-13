@@ -6,7 +6,7 @@
 
 ## Features
 
-- Search songs and artists through the YouTube Data API (when a key is set) and the open Audius API
+- Search any song on YouTube for free (no key needed) and through the open Audius API
 - Play full-length tracks or paste a direct HTTPS audio URL
 - Control playback, seeking, volume, repeat, shuffle, and speed from **0.5× to 4×**
 - Play, reorder, remove, and clear tracks in the queue
@@ -63,7 +63,7 @@ The live site is [pulse-player-0rdw.onrender.com](https://pulse-player-0rdw.onre
 
 ## Configuration and privacy
 
-Pulse has no server-side configuration or required environment variables. To search YouTube, set `YT_API_KEY` near the top of the script in `index.html` to a YouTube Data API v3 key from Google Cloud, restricted to this site's address. Each search uses about 100 of the key's 10,000 free daily quota units, and results are cached in the browser for a day. Without a key, search covers Audius only, and pasted YouTube links still play. Favorites and playback speed are saved in local storage on the current browser and are not synced between devices. Search requests go directly from the browser to YouTube and Audius; audio plays from the YouTube player, Audius, or the direct source you provide.
+Pulse has no server-side configuration or required environment variables. YouTube search works without a key: it uses free public Piped and Invidious mirrors (tried in order), and songs still play in the official YouTube player. These mirrors are community-run and can go down. For more reliable search, set the optional `YT_API_KEY` near the top of the script in `index.html` to a YouTube Data API v3 key restricted to this site's address. Search results are cached in the browser for a day. Favorites and playback speed are saved in local storage on the current browser and are not synced between devices. Search requests go directly from the browser to YouTube and Audius; audio plays from the YouTube player, Audius, or the direct source you provide.
 
 This is a single-user browser app. Telegram commands, login and access control, admin tools, server resource metrics, and bot-side stream resolvers are not part of Pulse.
 
