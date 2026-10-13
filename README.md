@@ -1,7 +1,7 @@
 # Pulse
 
 **A bright, browser-based music discovery player.** Search tracks, play short previews, build a queue, and keep favorites on your device.
-
+LIVE:https://pulse-player-0rdw.onrender.com/
 ## Features
 
 - Search songs and artists through the iTunes Search API
