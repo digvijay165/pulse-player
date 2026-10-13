@@ -57,6 +57,11 @@
     .side-note .note-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; background: #91b62b; border-radius: 50%; box-shadow: 0 0 0 4px rgba(145,182,43,.12); }
     .side-note p { margin: 11px 0 0; color: #6d6f66; font-size: 12px; }
     .side-note strong { color: var(--ink); }
+    .app-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-top: 46px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .repo-link { display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,254,250,.7); color: var(--ink); text-decoration: none; font-size: 11px; font-weight: 700; transition: .18s ease; }
+    .repo-link:hover { border-color: transparent; background: var(--lime); transform: translateY(-1px); }
+    .repo-link svg { width: 15px; height: 15px; flex: 0 0 15px; }
+
     .main { min-width: 0; padding: 28px clamp(22px, 3vw, 48px) 46px; }
     .topbar { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 34px; }
     .breadcrumb { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 12px; }
@@ -254,6 +259,14 @@
         <div class="track-grid" id="favoriteGrid"></div>
         <div class="empty-state" id="libraryEmpty"><strong>Keep a little something.</strong>Tap the heart on any track to save it here.</div>
       </section>
+      <footer class="app-footer">
+        <span>Made for music discovery.</span>
+        <a class="repo-link" href="https://github.com/digvijay165/pulse-player" target="_blank" rel="noopener noreferrer" aria-label="Open the pulse-player GitHub repository in a new tab">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.56.1.76-.24.76-.54v-2.1c-3.1.67-3.76-1.32-3.76-1.32-.5-1.28-1.23-1.62-1.23-1.62-1.01-.69.08-.68.08-.68 1.12.08 1.71 1.15 1.71 1.15 1 .1.76 2.26 3.52 1.63.1-.72.39-1.21.7-1.49-2.47-.28-5.07-1.24-5.07-5.5 0-1.22.44-2.22 1.15-3-.12-.29-.5-1.43.11-2.98 0 0 .94-.3 3.05 1.15a10.6 10.6 0 0 1 5.55 0c2.12-1.45 3.05-1.15 3.05-1.15.61 1.55.23 2.69.12 2.98.71.78 1.14 1.78 1.14 3 0 4.27-2.6 5.21-5.08 5.49.4.35.75 1.02.75 2.06v3.05c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z"/></svg>
+          <span>pulse-player</span>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4h6v6m0-6-9 9M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </footer>
     </main>
 
     <aside class="queue-panel" aria-label="Listening queue">
