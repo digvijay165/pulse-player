@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4f2ec">
-  <meta name="description" content="Pulse is a bright, simple music discovery player with searchable previews, a live queue, and saved favorites.">
+  <meta name="description" content="Pulse is a bright, simple music discovery player with searchable full-length tracks, a live queue, and saved favorites.">
   <title>Pulse — Music for the moment</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -231,7 +231,7 @@
       <button class="playlist-link" data-filter="Electronic">After hours</button>
       <button class="playlist-link" data-filter="Pop">Good energy</button>
       <div class="sidebar-spacer"></div>
-      <div class="side-note"><span class="eyebrow"><i class="note-dot"></i>Preview mode</span><p>Play a quick sample, find a new favorite, and <strong>keep the feeling.</strong></p></div>
+      <div class="side-note"><span class="eyebrow"><i class="note-dot"></i>Full tracks</span><p>Play whole songs, find a new favorite, and <strong>keep the feeling.</strong></p></div>
     </aside>
 
     <main class="main">
@@ -260,7 +260,7 @@
         </form>
         <div class="section-head"><div><h2>On your wavelength</h2><p>Small discoveries, picked for the moment.</p></div><button class="text-btn" data-view="search">See all tracks ↗</button></div>
         <div class="track-grid" id="featuredGrid" aria-live="polite"></div>
-        <div class="section-head"><div><h2>Now making the rounds</h2><p>Play a preview or send it to your queue.</p></div></div>
+        <div class="section-head"><div><h2>Now making the rounds</h2><p>Play a full track or send it to your queue.</p></div></div>
         <div class="track-list" id="featuredList"></div>
         <p class="status-line" id="homeStatus" role="status">Finding your first few tracks…</p>
       </section>
@@ -300,7 +300,7 @@
       </div>
       <div class="queue-section-title"><span>Coming up next</span><button class="text-btn" id="shuffleBtn">Shuffle</button></div>
       <div class="queue-list" id="queueList"><div class="queue-empty">Your queue is a blank canvas.<br>Add a track to get started.</div></div>
-      <div class="tip-card"><h3>A note on previews</h3><p>Each track plays a short sample, courtesy of the iTunes Search API. Full-length streaming isn't available here.</p></div>
+      <div class="tip-card"><h3>Full-length tracks</h3><p>Every song plays in full, streamed from the open Audius music catalog.</p></div>
     </aside>
   </div>
 
@@ -315,7 +315,7 @@
         <button class="icon-btn" id="nextTrack" aria-label="Next track"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM5 6v12l10-6z"/></svg></button>
         <button class="icon-btn optional" id="repeatControl" aria-label="Repeat off" title="Repeat off"><svg viewBox="0 0 24 24" fill="none"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-1v2a3 3 0 0 1-3 3H3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
-      <div class="progress-area"><span class="time" id="elapsed">0:00</span><input class="range" id="progress" type="range" min="0" max="100" value="0" aria-label="Track progress"><span class="time" id="duration">0:30</span></div>
+      <div class="progress-area"><span class="time" id="elapsed">0:00</span><input class="range" id="progress" type="range" min="0" max="100" value="0" aria-label="Track progress"><span class="time" id="duration">0:00</span></div>
     </div>
     <div class="player-extras"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm13-1a6 6 0 0 1 0 8m2.5-10.5a9 9 0 0 1 0 13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><input class="range" id="volume" type="range" min="0" max="1" step="0.01" value="0.78" aria-label="Volume"></div>
     <div class="progress-area" style="display:none"></div>
@@ -325,7 +325,8 @@
 
   <script>
     (() => {
-      const API = 'https://itunes.apple.com/search';
+      const API = 'https://api.audius.co/v1';
+      const APP_NAME = 'pulse-player';
       const FALLBACK_ART = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><rect width="300" height="300" rx="28" fill="#d9f367"/><path d="M78 159h36l24-71 45 132 25-61h31" fill="none" stroke="#21231f" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg>');
       const $ = (id) => document.getElementById(id);
       const state = {
@@ -346,14 +347,15 @@
       function minutes(ms) { const n = Math.max(0, Math.floor((ms || 30000) / 1000)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
       function say(message) { const el = $('toast'); el.textContent = message; el.classList.add('show'); clearTimeout(state.toastTimer); state.toastTimer = setTimeout(() => el.classList.remove('show'), 2400); }
       async function findTracks(term, limit = 30) {
-        const params = new URLSearchParams({ term, entity: 'song', limit: String(limit), country: 'IN' });
-        const response = await fetch(`${API}?${params}`);
+        const params = new URLSearchParams({ query: term, limit: String(limit), app_name: APP_NAME });
+        const response = await fetch(`${API}/tracks/search?${params}`);
         if (!response.ok) throw new Error('The music catalog could not be reached.');
         const data = await response.json();
-        return (data.results || []).filter(t => t.previewUrl && t.trackName && t.artistName).map(t => ({
-          id: String(t.trackId), title: t.trackName, artist: t.artistName, album: t.collectionName || 'Single',
-          artworkUrl100: t.artworkUrl100, previewUrl: t.previewUrl, duration: t.trackTimeMillis || 30000,
-          genre: t.primaryGenreName || 'Music', link: t.trackViewUrl || ''
+        return (data.data || []).filter(t => t.id && t.title && t.user?.name && t.is_streamable !== false).slice(0, limit).map(t => ({
+          id: String(t.id), title: t.title, artist: t.user.name, album: t.album_backlink?.playlist_name || 'Single',
+          artworkUrl100: t.artwork?.['480x480'] || t.artwork?.['150x150'] || '',
+          previewUrl: `${API}/tracks/${encodeURIComponent(t.id)}/stream?app_name=${APP_NAME}`,
+          duration: (t.duration || 0) * 1000, genre: t.genre || 'Music', link: t.permalink ? `https://audius.co${t.permalink}` : ''
         }));
       }
       function activeTracks() {
@@ -380,13 +382,13 @@
         $('featuredGrid').innerHTML = state.tracks.slice(0, 4).map(trackCard).join('');
         $('featuredList').innerHTML = state.tracks.slice(4, 10).map((t,i) => trackRow(t,i)).join('');
         $('heroArtwork').src = art(state.tracks[0]);
-        $('homeStatus').textContent = state.tracks.length ? `Showing ${state.tracks.length} playable previews from the iTunes catalog.` : 'No previews available for this selection yet.';
+        $('homeStatus').textContent = state.tracks.length ? `Showing ${state.tracks.length} full-length tracks from the Audius catalog.` : 'No tracks available for this selection yet.';
       }
       function renderSearchResults() {
         const list = activeTracks();
         $('searchResults').innerHTML = list.map((t,i) => trackRow(t,i)).join('');
         $('searchEmpty').hidden = Boolean(list.length);
-        $('resultsCount').textContent = state.searchTerm ? `${list.length} preview${list.length === 1 ? '' : 's'} for “${state.searchTerm}”${state.genre !== 'All' ? ` · ${state.genre}` : ''}` : 'Try an artist, genre, or song title.';
+        $('resultsCount').textContent = state.searchTerm ? `${list.length} track${list.length === 1 ? '' : 's'} for “${state.searchTerm}”${state.genre !== 'All' ? ` · ${state.genre}` : ''}` : 'Try an artist, genre, or song title.';
         $('resultsHeading').textContent = state.searchTerm ? 'Search results' : 'A good place to start';
       }
       function renderLibrary() {
@@ -414,7 +416,7 @@
       function allKnownTracks() { return [...state.tracks, ...state.results, ...state.queue, ...state.favoriteDetails.values(), state.current].filter(Boolean); }
       function getTrack(id) { return allKnownTracks().find(t => t.id === String(id)); }
       async function playTrack(track, addHistory = true) {
-        if (!track?.previewUrl) return say('That track has no playable preview.');
+        if (!track?.previewUrl) return say('That track is not playable.');
         if (addHistory && state.current && state.current.id !== track.id) state.history.push(state.current);
         state.current = track;
         audio.src = track.previewUrl;
@@ -428,7 +430,7 @@
       }
       function togglePlay() {
         if (!state.current) { const first = state.tracks[0]; if (first) return playTrack(first); return say('Give it a moment while we find some music.'); }
-        if (audio.paused) audio.play().catch(() => say('This preview could not be played. Try another track.'));
+        if (audio.paused) audio.play().catch(() => say('This track could not be played. Try another one.'));
         else audio.pause();
       }
       async function nextTrack() {
@@ -501,7 +503,7 @@
         try {
           state.results = await findTracks(query, 35);
           $('searchSubtitle').textContent = `A little closer to the sound you asked for: ${query}.`;
-          $('searchStatus').textContent = state.results.length ? 'Tap a track to play its preview, or use + to build your queue.' : 'No playable previews came back. Try a different search.';
+          $('searchStatus').textContent = state.results.length ? 'Tap a track to play it in full, or use + to build your queue.' : 'No playable tracks came back. Try a different search.';
           renderSearchResults();
         } catch (error) {
           state.results = []; renderSearchResults();
@@ -515,7 +517,7 @@
         if (!state.searchTerm) {
           const terms = { 'All':'indie pop', 'Pop':'pop hits', 'Rock':'indie rock', 'Electronic':'electronic', 'Hip-Hop/Rap':'hip hop', 'R&B/Soul':'r&b soul', 'Alternative':'alternative music' };
           const term = terms[genre] || genre.toLowerCase();
-          $('searchStatus').textContent = 'Finding a few previews…';
+          $('searchStatus').textContent = 'Finding a few tracks…';
           try { state.results = await findTracks(term, 35); state.searchTerm = genre === 'All' ? '' : genre; }
           catch { state.results = []; $('searchStatus').textContent = 'Could not connect to the catalog. Try again in a moment.'; }
         }
@@ -567,7 +569,7 @@
         audio.addEventListener('play', updatePlayback); audio.addEventListener('pause', updatePlayback);
         audio.addEventListener('timeupdate', updateProgress);
         audio.addEventListener('ended', () => { if (state.repeat === 'one') { audio.currentTime = 0; audio.play(); } else nextTrack(); });
-        audio.addEventListener('error', () => say('This preview is unavailable right now. Try another track.'));
+        audio.addEventListener('error', () => say('This track is unavailable right now. Try another one.'));
       }
       function updateProgress() {
         if (!audio.duration || !Number.isFinite(audio.duration)) return;
@@ -577,7 +579,7 @@
       }
       async function boot() {
         renderEvents(); renderQueue();
-        try { state.tracks = await findTracks('indie pop', 20); renderDiscovery(); if (state.tracks.length) { $('homeStatus').textContent = `A fresh mix of ${state.tracks.length} previews, ready when you are.`; } }
+        try { state.tracks = await findTracks('indie pop', 20); renderDiscovery(); if (state.tracks.length) { $('homeStatus').textContent = `A fresh mix of ${state.tracks.length} full tracks, ready when you are.`; } }
         catch { $('homeStatus').textContent = 'Connect to the internet to explore the music catalog.'; $('featuredGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><strong>The catalog is taking a breather.</strong>Check your connection, then search again.</div>'; }
       }
       boot();

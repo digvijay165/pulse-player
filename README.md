@@ -1,13 +1,13 @@
 # Pulse Player
 
-**A bright, browser-based music discovery player.** Search a catalog of short previews, play direct audio links, manage a listening queue, and save favorites on your device.
+**A bright, browser-based music discovery player.** Search a catalog of full-length tracks, play direct audio links, manage a listening queue, and save favorites on your device.
 
 [Live player](https://pulse-player-0rdw.onrender.com/) · [GitHub repository](https://github.com/digvijay165/pulse-player)
 
 ## Features
 
-- Search songs and artists through Apple's public iTunes Search API
-- Play available music previews or paste a direct HTTPS audio URL
+- Search songs and artists through the open Audius API
+- Play full-length tracks or paste a direct HTTPS audio URL
 - Control playback, seeking, volume, repeat, shuffle, and speed from **0.5× to 4×**
 - Play, reorder, remove, and clear tracks in the queue
 - Save favorites and playback speed in this browser
@@ -18,10 +18,10 @@
 
 | Priority | Source | What Pulse supports |
 | --- | --- | --- |
-| 1 | iTunes Search API | Search results, artwork, and short audio previews when available |
+| 1 | Audius API | Search results, artwork, and full-length audio streams |
 | 2 | Direct HTTPS audio URL | Audio files the browser can play; native HLS works only in browsers that support it |
 
-Pulse needs a **direct audio URL**, not a YouTube or Spotify webpage. It does not resolve Spotify, YouTube, Telegram, or other platform links, and it does not provide full-length music streaming. The app plays previews supplied by the catalog or audio sources you provide.
+Pulse needs a **direct audio URL**, not a YouTube or Spotify webpage. It does not resolve Spotify, YouTube, Telegram, or other platform links, The app plays full-length tracks from the Audius catalog, mostly independent artists, or audio sources you provide.
 
 ## Player controls
 
@@ -62,7 +62,7 @@ The live site is [pulse-player-0rdw.onrender.com](https://pulse-player-0rdw.onre
 
 ## Configuration and privacy
 
-Pulse has no server-side configuration or required environment variables. Favorites and playback speed are saved in local storage on the current browser and are not synced between devices. Search requests go directly from the browser to the iTunes Search API; audio plays from the selected preview or direct source.
+Pulse has no server-side configuration or required environment variables. Favorites and playback speed are saved in local storage on the current browser and are not synced between devices. Search requests go directly from the browser to the Audius API; audio streams from Audius or the direct source you provide.
 
 This is a single-user browser app. Telegram commands, login and access control, admin tools, server resource metrics, and bot-side stream resolvers are not part of Pulse.
 
