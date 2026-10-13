@@ -202,7 +202,7 @@
         <button class="nav-link" data-view="library"><svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M5 4h14a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 18a2 2 0 0 1 2-2h14" stroke="currentColor" stroke-width="1.8"/><path d="M9 8h8M9 11h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Your library</span></button>
       </nav>
       <div class="side-divider"></div>
-      <div class="playlist-title"><span class="eyebrow">Your playlists</span><button class="icon-btn" id="makePlaylist" aria-label="Create a playlist"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
+      <div class="playlist-title"><span class="eyebrow">Browse moods</span></div>
       <button class="playlist-link" data-filter="Chill">Slow mornings</button>
       <button class="playlist-link" data-filter="Electronic">After hours</button>
       <button class="playlist-link" data-filter="Pop">Good energy</button>
@@ -216,7 +216,7 @@
         <form class="search-wrap" id="searchForm" role="search">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           <input id="searchInput" type="search" placeholder="Songs, artists, albums..." aria-label="Search songs and artists" autocomplete="off">
-          <span class="search-shortcut">⌘ K</span>
+          <span class="search-shortcut">Ctrl K</span>
         </form>
       </header>
 
@@ -292,9 +292,12 @@
       const FALLBACK_ART = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><rect width="300" height="300" rx="28" fill="#d9f367"/><path d="M78 159h36l24-71 45 132 25-61h31" fill="none" stroke="#21231f" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg>');
       const $ = (id) => document.getElementById(id);
       const state = {
-        tracks: [], results: [], queue: [], current: null, favorites: new Set(readStorage('pulse-favorites', [])),
+        tracks: [], results: [], queue: [], current: null, favorites: new Set(), favoriteDetails: new Map(),
         view: 'discover', genre: 'All', repeat: 'off', shuffle: false, searchTerm: '', toastTimer: null, history: []
       };
+      const savedFavorites = readStorage('pulse-favorites', []);
+      state.favoriteDetails = new Map(savedFavorites.filter(item => item && typeof item === 'object' && item.id).map(item => [String(item.id), item]));
+      state.favorites = new Set(savedFavorites.map(item => String(typeof item === 'object' ? item.id : item)));
       const audio = $('audio');
       const icon = (name) => name === 'pause'
         ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>'
@@ -350,7 +353,7 @@
         $('resultsHeading').textContent = state.searchTerm ? 'Search results' : 'A good place to start';
       }
       function renderLibrary() {
-        const favorites = [...state.favorites].map(id => [...state.tracks, ...state.results, state.current].find(t => t?.id === id)).filter(Boolean);
+        const favorites = [...state.favorites].map(id => state.favoriteDetails.get(id) || [...state.tracks, ...state.results, state.current].find(t => t?.id === id)).filter(Boolean);
         $('favoriteGrid').innerHTML = favorites.map(trackCard).join('');
         $('favoriteCount').textContent = `${favorites.length} track${favorites.length === 1 ? '' : 's'}`;
         $('libraryEmpty').hidden = Boolean(favorites.length);
@@ -371,7 +374,7 @@
         ['playerHeart','queueHeart'].forEach(id => { const button = $(id); button.classList.toggle('row-heart', liked); button.classList.toggle('liked', liked); button.setAttribute('aria-label', liked ? 'Remove current track from favorites' : 'Save current track'); });
         updateProgress();
       }
-      function allKnownTracks() { return [...state.tracks, ...state.results, ...state.queue, state.current].filter(Boolean); }
+      function allKnownTracks() { return [...state.tracks, ...state.results, ...state.queue, ...state.favoriteDetails.values(), state.current].filter(Boolean); }
       function getTrack(id) { return allKnownTracks().find(t => t.id === String(id)); }
       async function playTrack(track, addHistory = true) {
         if (!track?.previewUrl) return say('That track has no playable preview.');
@@ -406,9 +409,9 @@
       function addToQueue(track) { if (!track) return; state.queue.push(track); renderQueue(); say(`Added “${track.title}” to your queue.`); }
       function toggleFavorite(track) {
         if (!track) return;
-        if (state.favorites.has(track.id)) { state.favorites.delete(track.id); say('Removed from your favorites.'); }
-        else { state.favorites.add(track.id); say('Saved to your favorites.'); }
-        saveStorage('pulse-favorites', [...state.favorites]);
+        if (state.favorites.has(track.id)) { state.favorites.delete(track.id); state.favoriteDetails.delete(track.id); say('Removed from your favorites.'); }
+        else { state.favorites.add(track.id); state.favoriteDetails.set(track.id, track); say('Saved to your favorites.'); }
+        saveStorage('pulse-favorites', [...state.favoriteDetails.values()]);
         renderDiscovery(); renderSearchResults(); renderLibrary(); renderCurrent();
       }
       async function search(term) {
@@ -433,7 +436,7 @@
         document.querySelectorAll('.filter').forEach(b => b.classList.toggle('active', b.dataset.genre === genre));
         if (state.view !== 'search') setView('search');
         if (!state.searchTerm) {
-          const terms = { 'Pop':'pop hits', 'Rock':'indie rock', 'Electronic':'electronic', 'Hip-Hop/Rap':'hip hop', 'R&amp;B/Soul':'r&b soul', 'Alternative':'alternative music' };
+          const terms = { 'All':'indie pop', 'Pop':'pop hits', 'Rock':'indie rock', 'Electronic':'electronic', 'Hip-Hop/Rap':'hip hop', 'R&B/Soul':'r&b soul', 'Alternative':'alternative music' };
           const term = terms[genre] || genre.toLowerCase();
           $('searchStatus').textContent = 'Finding a few previews…';
           try { state.results = await findTracks(term, 35); state.searchTerm = genre === 'All' ? '' : genre; }
@@ -476,7 +479,6 @@
         $('playerHeart').addEventListener('click', () => toggleFavorite(state.current));
         $('progress').addEventListener('input', () => { if (audio.duration) audio.currentTime = Number($('progress').value) / 100 * audio.duration; });
         $('volume').addEventListener('input', () => { audio.volume = Number($('volume').value); });
-        $('makePlaylist').addEventListener('click', () => say('Save favorite tracks to start a personal playlist.'));
         audio.volume = 0.78;
         audio.addEventListener('play', updatePlayback); audio.addEventListener('pause', updatePlayback);
         audio.addEventListener('timeupdate', updateProgress);
